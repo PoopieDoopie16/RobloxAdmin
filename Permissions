@@ -1,0 +1,33 @@
+local HttpService = game:GetService("HttpService")
+
+-- The URL to your GitHub raw file containing admin user IDs
+local githubRawURL = "https://raw.githubusercontent.com/PoopieDoopie16/RobloxAdmin/main/AdminIds%2Cjson"
+
+-- Function to fetch the data
+local function fetchGitHubData(context)
+	local success, data = pcall(function()
+		return HttpService:GetAsync(githubRawURL)
+	end)
+
+	if success then
+		-- Parse the data (assuming it's in JSON format)
+		local decodedData = HttpService:JSONDecode(data)
+
+		-- Access the user IDs or other data
+		local adminUserIds = decodedData.adminUserIds
+
+		-- Check if the player's ID is in the list of adminUserIds
+		if context.Group == "DefaultAdmin" and not table.find(adminUserIds, context.Executor.UserId) then
+			return "You don't have permission to run this command"
+		end
+	else
+		warn("Failed to fetch data from GitHub.")
+	end
+end
+
+return function(registry)
+	registry:RegisterHook("BeforeRun", function(context)
+		-- Call the function to fetch the data and pass the context
+		fetchGitHubData(context)
+	end)
+end
